@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Standard {
+  id                       String    @id @default(uuid())
+  isNumber                 String    @unique
+  title                    String
+  edition                  String?
+  revision                 String?
+  year                     Int?
+  status                   String?
+  publicationYear          Int?
+  amendmentInformation     String?
+  reaffirmationInformation String?
+  technicalDepartment      String?
+  sectionalCommittee       String?
+  sector                   String?
+  sourceUrl                String?
+  sourceName               String?
+  sourceDocument           String?
+  sourcePage               String?
+  lastVerifiedAt           DateTime?
+  documentId               String?
+  embedding                String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  document Document? @relation(fields: [documentId], references: [id])
+  products Product[]
+
+  groups                     StandardGroup[]
+  subGroups                  StandardSubGroup[]
+  SavedStandard              SavedStandard[]
+  ComplianceChecklist        ComplianceChecklist[]
+  LaboratoryStandardRelation LaboratoryStandardRelation[]
+}
+
+model Document {
+  id               String            @id @default(uuid())
+  title            String
+  documentType     String?
+  standardNumber   String?
+  originalFileName String
+  sourceUrl        String?
+  storageReference String?
+  contentHash      String?
+  pageCount        Int?
+  extractionMethod String?
+  extractionStatus String?
+  retrievedAt      DateTime?
+  embedding        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  standards        Standard[]
+  pages            DocumentPage[]
+  sections         DocumentSection[]
+  chunks           DocumentChunk[]
+}
+
+model DocumentPage {
+  id               String            @id @default(uuid())
+  documentId       String
+  pageNumber       Int
+  rawText          String
+  cleanedText      String?
+  extractionMethod String?
+  extractionStatus String?
+  embedding        String?
+  createdAt        DateTime          @default(now())
+  document         Document          @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  sections         DocumentSection[]
+  chunks           DocumentChunk[]
+}
+
+model DocumentSection {
+  id           String          @id @default(uuid())
+  documentId   String
+  pageId       String?
+  heading      String
+  sectionType  String?
+  content      String
+  sectionOrder Int?
+  document     Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page         DocumentPage?   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  chunks       DocumentChunk[]
+}
+
+model DocumentChunk {
+  id             String           @id @default(uuid())
+  documentId     String
+  pageId         String?
+  sectionId      String?
+  standardNumber String?
+  chunkIndex     Int
+  text           String
+  metadata       String? // SQLite JSON fallback
+  embedding      String?
+  createdAt      DateTime         @default(now())
+  document       Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page           DocumentPage?    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  section        DocumentSection? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+}
+
+model IngestionJob {
+  id                String                       @id @default(uuid())
+  fileName          String
+  status            String // PENDING, PROCESSING, COMPLETED, FAILED
+  startedAt         DateTime?
+  completedAt       DateTime?
+  errorMessage      String?
+  pagesProcessed    Int                          @default(0)
+  chunksCreated     Int                          @default(0)
+  embedding         String?
+  standardRelations LaboratoryStandardRelation[]
+
+  createdAt DateTime @default(now())
+}
+
+model Laboratory {
+  id                String                       @id @default(uuid())
+  labCode           String                       @unique
+  name              String
+  address           String?
+  city              String?
+  district          String?
+  state             String?
+  pincode           String?
+  contactPerson     String?
+  phone             String?
+  email             String?
+  validityDate      String?
+  status            String?
+  category          String?
+  testingScope      String?
+  sourceUrl         String?
+  sourceName        String?
+  lastVerifiedAt    DateTime?
+  standardRelations LaboratoryStandardRelation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Group {
+  id        String          @id @default(uuid())
+  name      String          @unique
+  subGroups SubGroup[]
+  standards StandardGroup[]
+  createdAt DateTime        @default(now())
+}
+
+model SubGroup {
+  id        String             @id @default(uuid())
+  groupId   String
+  name      String
+  group     Group              @relation(fields: [groupId], references: [id])
+  standards StandardSubGroup[]
+  createdAt DateTime           @default(now())
+
+  @@unique([groupId, name])
+}
+
+model StandardGroup {
+  id         String   @id @default(uuid())
+  standardId String
+  groupId    String
+  standard   Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([standardId, groupId])
+}
+
+model StandardSubGroup {
+  id         String   @id @default(uuid())
+  standardId String
+  subGroupId String
+  standard   Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  subGroup   SubGroup @relation(fields: [subGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([standardId, subGroupId])
+}
+
+model CertificationScheme {
+  id                 String                     @id @default(uuid())
+  name               String
+  description        String
+  products           Product[]
+  requirements       CertificationRequirement[]
+  createdAt          DateTime                   @default(now())
+  SavedCertification SavedCertification[]
+}
+
+model Product {
+  id         String  @id @default(uuid())
+  name       String
+  category   String?
+  schemeId   String
+  standardId String?
+
+  scheme              CertificationScheme   @relation(fields: [schemeId], references: [id])
+  standard            Standard?             @relation(fields: [standardId], references: [id])
+  createdAt           DateTime              @default(now())
+  ComplianceChecklist ComplianceChecklist[]
+}
+
+model CertificationRequirement {
+  id              String              @id @default(uuid())
+  schemeId        String
+  title           String
+  description     String
+  requirementType String
+  order           Int
+  scheme          CertificationScheme @relation(fields: [schemeId], references: [id])
+}
+
+// ==========================================================
+// PHASE 5 ADVANCED MODELS
+// ==========================================================
+
+model User {
+  id             String                @id @default(uuid())
+  sessionId      String                @unique // For anonymous session tracking
+  savedStandards SavedStandard[]
+  savedCerts     SavedCertification[]
+  activities     UserActivity[]
+  checklists     ComplianceChecklist[]
+  notifications  Notification[]
+  createdAt      DateTime              @default(now())
+}
+
+model SavedStandard {
+  id         String   @id @default(uuid())
+  userId     String
+  standardId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  standard   Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, standardId])
+}
+
+model SavedCertification {
+  id        String              @id @default(uuid())
+  userId    String
+  schemeId  String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheme    CertificationScheme @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  createdAt DateTime            @default(now())
+
+  @@unique([userId, schemeId])
+}
+
+model UserActivity {
+  id           String   @id @default(uuid())
+  userId       String
+  activityType String // e.g., 'SEARCH', 'VIEW_STANDARD', 'VIEW_CERTIFICATION', 'ASK_AI'
+  entityId     String? // ID of the standard/cert/etc
+  details      String? // JSON string for metadata (e.g., search query)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+}
+
+model ComplianceChecklist {
+  id         String                    @id @default(uuid())
+  userId     String
+  standardId String?
+  productId  String?
+  title      String
+  progress   Int                       @default(0)
+  items      ComplianceChecklistItem[]
+  user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  standard   Standard?                 @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  product    Product?                  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime                  @default(now())
+  updatedAt  DateTime                  @updatedAt
+}
+
+model ComplianceChecklistItem {
+  id          String              @id @default(uuid())
+  checklistId String
+  category    String // 'Standard', 'Certification', 'Testing', 'Documentation', etc
+  description String
+  isCompleted Boolean             @default(false)
+  checklist   ComplianceChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+}
+
+model UpdateEvent {
+  id            String         @id @default(uuid())
+  eventType     String // 'STANDARD_UPDATED', 'CERTIFICATION_CHANGED', etc
+  entityId      String
+  entityType    String // 'Standard', 'CertificationScheme', etc
+  description   String
+  sourceUrl     String?
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+}
+
+model Notification {
+  id        String      @id @default(uuid())
+  userId    String
+  eventId   String
+  isRead    Boolean     @default(false)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     UpdateEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+}
+
+model LaboratoryStandardRelation {
+  id             String        @id @default(uuid())
+  laboratoryId   String
+  standardId     String
+  laboratory     Laboratory    @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  standard       Standard      @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  IngestionJob   IngestionJob? @relation(fields: [ingestionJobId], references: [id])
+  ingestionJobId String?
+
+  @@unique([laboratoryId, standardId])
+}

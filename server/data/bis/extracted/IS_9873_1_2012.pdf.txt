@@ -1,0 +1,15 @@
+IS 9873-1 (2012): Safety Requirements for Toys, Part 1: Safety Aspects related to Mechanical and Physical Properties [PCD 12: Plastics]
+
+Scope:
+The requirements in this part of ISO 8124 apply to all toys, i.e. any product or material designed or clearly intended for use in play by children under 14 years of age. They are applicable to a toy as it is initially received by the consumer and, in addition, they apply after a toy is subjected to reasonably foreseeable conditions of normal use and abuse unless specifically noted otherwise.
+
+4.2 Reasonably foreseeable abuse
+All toys shall be tested in accordance with the relevant normal use tests in 5.1 to 5.23.
+
+4.4 Small parts
+Toys intended for children under 36 months, removable components thereof and components liberated during testing in accordance with 5.24 shall not fit entirely, whatever their orientation, into the small parts cylinder.
+
+5.2 Small parts test
+Place the toy, without compressing it and in any orientation, into the cylinder as shown in Figure 15.
+
+Determine whether the toy or any removable component or liberated component fits entirely within the cylinder.

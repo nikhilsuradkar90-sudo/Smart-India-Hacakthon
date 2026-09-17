@@ -1,0 +1,20 @@
+IS 14543 : 2004
+PACKAGED DRINKING WATER (OTHER THAN PACKAGED NATURAL MINERAL WATER) - SPECIFICATION
+
+1 SCOPE
+This standard prescribes the requirements and methods of sampling and test for drinking water (other than natural mineral water) offered for sale in packaged form.
+
+3.2 Packaged Drinking Water (Other than Packaged Natural Mineral Water)
+Packaged drinking water means water derived from surface water or underground water or sea water which is subjected to hereinunder specified treatments, namely, decantation, filtration, combination of filtration, aerations, filtration with membrane filter depth filter, cartridge filter, activated carbon filtration, demineralization, remineralization, reverse osmosis and packed after disinfecting the water to a level that shall not lead to any harmful contamination.
+
+5 REQUIREMENTS
+5.1 Microbiological Requirements
+5.1.1 Escherichia coli (or thermotolerant bacteria) shall be absent in any 250 ml sample.
+5.1.2 Coliform bacteria shall be absent in any 250 ml sample.
+
+7 MARKING
+7.1 The following particulars shall be marked legibly and indelibly on the label of the bottle container:
+a) Name of the product (that is packaged drinking water);
+b) Name and address of the processor;
+c) Brand name, if any;
+d) Batch or Code number;

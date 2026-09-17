@@ -1,0 +1,20 @@
+IS 13252 (Part 1) : 2010
+IEC 60950-1 : 2005
+INFORMATION TECHNOLOGY EQUIPMENT - SAFETY
+PART 1 GENERAL REQUIREMENTS
+
+1.1 Scope
+1.1.1 Equipment covered by this standard
+This standard is applicable to mains-powered or battery-powered information technology equipment, including electrical business equipment and associated equipment, with a RATED VOLTAGE not exceeding 600 V.
+
+1.2 Definitions
+1.2.4.1 CLASS I EQUIPMENT
+equipment where protection against electric shock is achieved by using BASIC INSULATION and providing a means of connection to the PROTECTIVE EARTHING CONDUCTOR.
+
+1.5 Components
+1.5.1 General
+Where safety is involved, components shall comply either with the requirements of this standard or with the safety aspects of the relevant IEC component standards.
+
+2.1 Protection from electric shock and energy hazards
+2.1.1 Protection in operator access areas
+This subclause specifies requirements for protection against electric shock from energized parts.
