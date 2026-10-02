@@ -175,7 +175,7 @@ export function StandardsFinderPage() {
           </div>
 
           {results.map((standard) => (
-            <StandardResultCard key={standard.id} standard={standard} onAskAssistant={() => navigate('/assistant')} />
+            <StandardResultCard key={standard.id} standard={standard} onAskAssistant={() => navigate('/assistant', { state: { initialPrompt: `Tell me about standard ${standard.identifier} - ${standard.title}` } })} />
           ))}
           {/* Pagination */}
           {Math.ceil(total / 20) > 1 && (

@@ -106,7 +106,7 @@ export function LaboratoryFinderPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <Select value={state} onValueChange={setState}>
               <SelectTrigger aria-label="State"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -115,6 +115,8 @@ export function LaboratoryFinderPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            
 
             <Select value={productCategory} onValueChange={setProductCategory}>
               <SelectTrigger aria-label="Product category"><SelectValue /></SelectTrigger>
@@ -151,7 +153,7 @@ export function LaboratoryFinderPage() {
         <LoadingState message="Finding laboratories…" />
       ) : results.length === 0 ? (
         hasSearched ? (
-          <NoResultsState message="No laboratories found." suggestion="Try different search terms or filters." />
+          <NoResultsState message="No laboratories match your current filters." suggestion="Try removing a capability filter, broadening your search, or changing the state." />
         ) : (
           <EmptyState title="Start your search" description="Search for laboratories by product, test, or location." icon={Search} />
         )
@@ -252,11 +254,17 @@ function LaboratoryCard({ lab, onAskAssistant }: { lab: Laboratory; onAskAssista
           </div>
         </div>
 
-        {lab.contact && (
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Mail className="h-3 w-3" /> {lab.contact}
-          </p>
-        )}
+        
+        <div className="flex flex-col gap-1.5 mt-2 p-3 bg-muted/30 rounded-lg">
+          <p className="text-xs font-semibold text-foreground border-b pb-1 mb-1">Laboratory Details</p>
+          {lab.labCode && <p className="text-xs text-muted-foreground"><strong>Lab Code:</strong> {lab.labCode}</p>}
+          {lab.status && <p className="text-xs text-muted-foreground"><strong>Status:</strong> <span className="text-green-600">{lab.status}</span></p>}
+          {lab.validityDate && <p className="text-xs text-muted-foreground"><strong>Valid Till:</strong> {lab.validityDate}</p>}
+          {lab.phone && <p className="text-xs text-muted-foreground"><strong>Phone:</strong> {lab.phone}</p>}
+          {lab.email && <p className="text-xs text-muted-foreground"><strong>Email:</strong> {lab.email}</p>}
+          {!lab.phone && !lab.email && lab.contact && <p className="text-xs text-muted-foreground"><strong>Contact:</strong> {lab.contact}</p>}
+        </div>
+
 
         <Button variant="ghost" size="sm" className="self-start" onClick={onAskAssistant}>
           Ask Assistant <ArrowRight className="h-3.5 w-3.5 ml-1" />

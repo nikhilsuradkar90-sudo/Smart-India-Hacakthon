@@ -28,7 +28,8 @@
     "multer": "^2.3.0",
     "pdf-parse": "^1.1.1",
     "pg": "^8.23.0",
-    "qs": "^6.16.0"
+    "qs": "^6.16.0",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

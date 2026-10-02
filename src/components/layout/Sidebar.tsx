@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShieldCheck, Globe, Settings, CircleHelp, X } from 'lucide-react';
+import { ShieldCheck, Globe, Settings, CircleHelp, X , Landmark } from 'lucide-react';
 import { NAV_ITEMS, BOTTOM_NAV_ITEMS, APP_NAME, APP_TAGLINE } from '@/data/constants';
 import { getIcon } from '@/lib/icons';
 import { cn } from '@/lib/utils';
@@ -22,8 +22,8 @@ import { Separator } from '@/components/ui/separator';
 export function BrandMark({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
-        <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-900 shadow-md shadow-sm transition-transform group-hover:scale-105">
+        <Landmark className="h-5 w-5 text-white" aria-hidden="true" />
       </div>
       {!collapsed && (
         <div className="flex flex-col">

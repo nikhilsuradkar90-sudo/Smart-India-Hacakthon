@@ -176,12 +176,18 @@ export interface Laboratory {
   recognition: LaboratoryRecognition;
   recognitionLabel: string;
   contact?: string;
+  phone?: string;
+  email?: string;
+  validityDate?: string;
+  labCode?: string;
+  status?: string;
   isDemo: boolean;
 }
 
 export interface LaboratorySearchFilters {
   query?: string;
   state?: string;
+  city?: string;
   productCategory?: string;
   testType?: string;
   recognition?: LaboratoryRecognition | 'all';
@@ -252,7 +258,7 @@ export interface AppSettings {
 export interface NavItem {
   id: string;
   label: string;
-  path: string;
+  path: string;\n  color?: string;
   icon: string;
   description?: string;
 }

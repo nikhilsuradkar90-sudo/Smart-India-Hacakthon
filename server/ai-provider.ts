@@ -83,12 +83,23 @@ class GroqAIProvider implements AIProvider {
     const apiMessages: any[] = systemPrompt ? [{ role: 'system', content: systemPrompt }] : [];
     apiMessages.push(...messages);
 
-    const response = await this.client.chat.completions.create({
-      model: this.model,
-      messages: apiMessages,
-      temperature: 0.2
-    });
-    return response.choices[0]?.message?.content || '';
+    try {
+      const response = await this.client.chat.completions.create({
+        model: this.model,
+        messages: apiMessages,
+        temperature: 0.2
+      });
+      return response.choices[0]?.message?.content || '';
+    } catch (e: any) {
+      console.warn("[Groq] Primary model failed, trying fallback model...", e.message);
+      // Automatically fallback to an alternate free model on the proxy if the primary one is rate-limited!
+      const fallbackResponse = await this.client.chat.completions.create({
+        model: 'qwen/qwen3.8-27b',
+        messages: apiMessages,
+        temperature: 0.2
+      });
+      return fallbackResponse.choices[0]?.message?.content || '';
+    }
   }
 }
 

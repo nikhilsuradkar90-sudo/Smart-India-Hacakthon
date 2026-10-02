@@ -1,9 +1,11 @@
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, X, Paperclip, Mic, Trash2, Copy, ThumbsUp, ThumbsDown, RotateCw, MoreHorizontal, Sparkles, FileText, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Send, X, Paperclip, Mic, Trash2, Copy, ThumbsUp, ThumbsDown, RotateCw, MoreHorizontal, Sparkles, FileText, ShieldCheck, Volume2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { AssistantMessage, ChatSession } from '@/types';
 import { assistantService } from '@/services';
-import { QUICK_PROMPTS, AI_NOT_CONNECTED } from '@/data/constants';
+import { QUICK_PROMPTS, AI_NOT_CONNECTED, CHAT_STORAGE_KEY } from '@/data/constants';
 import { useLanguage } from '@/hooks/use-language';
 import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
@@ -48,10 +50,72 @@ function formatTimestamp(iso: string): string {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-import { CHAT_STORAGE_KEY } from '@/data/constants';
+
+
+const speakText = (text: string, lang: string) => {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    alert("Voice output is not supported in this browser.");
+    return;
+  }
+  
+  window.speechSynthesis.cancel();
+  if (!text) return;
+  
+  const langMap: Record<string, string> = {
+    'en': 'en-IN', 'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN', 'mr': 'mr-IN',
+    'ta': 'ta-IN', 'ur': 'ur-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN',
+    'or': 'or-IN', 'pa': 'pa-IN', 'as': 'as-IN', 'mai': 'hi-IN', 'sat': 'hi-IN',
+    'ks': 'ks-IN', 'ne': 'ne-NP', 'gom': 'kok-IN', 'sd': 'sd-IN', 'doi': 'hi-IN',
+    'mni': 'mni-IN', 'brx': 'hi-IN', 'sa': 'sa-IN'
+  };
+  const targetLang = langMap[lang] || 'hi-IN';
+  
+  const voices = window.speechSynthesis.getVoices();
+  let bestVoice = voices.find(v => v.lang === targetLang && v.name.includes('Google')) ||
+                  voices.find(v => v.lang === targetLang && (v.name.includes('Online') || v.name.includes('Natural'))) ||
+                  voices.find(v => v.lang === targetLang) ||
+                  voices.find(v => v.lang.startsWith((lang || 'hi').substring(0,2)));
+
+  const cleanText = text.replace(/[*#_]/g, '');
+  const chunks = cleanText.match(/[^.!?\n]+[.!?\n]+/g) || [cleanText];
+
+  let i = 0;
+  
+  const speakNext = () => {
+    if (i >= chunks.length) return;
+    const chunkText = chunks[i].trim();
+    if (!chunkText) {
+      i++;
+      speakNext();
+      return;
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(chunkText);
+    utterance.lang = targetLang;
+    if (bestVoice) utterance.voice = bestVoice;
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    
+    utterance.onend = () => {
+      i++;
+      speakNext();
+    };
+    
+    utterance.onerror = (e) => {
+      console.error("TTS Error:", e);
+      i++;
+      speakNext();
+    };
+    
+    window.speechSynthesis.speak(utterance);
+  };
+  
+  speakNext();
+};
 
 export function AssistantPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { language } = useLanguage();
   const { settings } = useSettings();
   
@@ -69,9 +133,22 @@ export function AssistantPage() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(session));
-    } catch (e) {
+      let dataToSave = session;
+      // Auto-truncate to last 20 messages to prevent QuotaExceededError
+      if (session.messages.length > 20) {
+        dataToSave = { ...session, messages: session.messages.slice(-20) };
+      }
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(dataToSave));
+    } catch (e: any) {
       console.error('Failed to save chat history:', e);
+      // If still hitting limit (e.g. huge chunks), drastically reduce
+      if (e.name === 'QuotaExceededError' || e.message?.includes('quota')) {
+        try {
+          localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify({ ...session, messages: session.messages.slice(-5) }));
+        } catch(e2) {
+          console.error('Completely failed to save chat.', e2);
+        }
+      }
     }
   }, [session]);
   const [input, setInput] = useState('');
@@ -95,7 +172,16 @@ export function AssistantPage() {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = false;
         recognitionRef.current.interimResults = false;
-        recognitionRef.current.lang = 'en-US';
+        
+        const langMap: Record<string, string> = { 
+      'en': 'en-IN', 'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN', 'mr': 'mr-IN', 
+      'ta': 'ta-IN', 'ur': 'ur-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN', 
+      'or': 'or-IN', 'pa': 'pa-IN', 'as': 'as-IN', 'mai': 'hi-IN', 'sat': 'hi-IN', 
+      'ks': 'ks-IN', 'ne': 'ne-NP', 'gom': 'kok-IN', 'sd': 'sd-IN', 'doi': 'hi-IN', 
+      'mni': 'mni-IN', 'brx': 'hi-IN', 'sa': 'sa-IN' 
+    };
+        recognitionRef.current.lang = langMap[language] || 'en-US';
+
 
         recognitionRef.current.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
@@ -126,7 +212,17 @@ export function AssistantPage() {
       setIsRecording(false);
     } else {
       try {
-        recognitionRef.current.start();
+        
+          const langMap: Record<string, string> = { 
+      'en': 'en-IN', 'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN', 'mr': 'mr-IN', 
+      'ta': 'ta-IN', 'ur': 'ur-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN', 
+      'or': 'or-IN', 'pa': 'pa-IN', 'as': 'as-IN', 'mai': 'hi-IN', 'sat': 'hi-IN', 
+      'ks': 'ks-IN', 'ne': 'ne-NP', 'gom': 'kok-IN', 'sd': 'sd-IN', 'doi': 'hi-IN', 
+      'mni': 'mni-IN', 'brx': 'hi-IN', 'sa': 'sa-IN' 
+    };
+          recognitionRef.current.lang = langMap[language] || 'en-US';
+          recognitionRef.current.start();
+
         setIsRecording(true);
       } catch (e) {
         console.error(e);
@@ -153,6 +249,9 @@ export function AssistantPage() {
       messages: prev.messages.map((m) => (m.id === id ? { ...m, ...updates } : m)),
     }));
   }, []);
+
+  
+
 
   const handleSend = useCallback(async (text?: string) => {
     let queryText = (text || input).trim();
@@ -217,6 +316,19 @@ export function AssistantPage() {
     }
     setIsSending(false);
   }, [language, updateMessage]);
+
+  // Auto-send if initialPrompt was passed via navigation state
+  useEffect(() => {
+    if (location.state?.initialPrompt) {
+      const prompt = location.state.initialPrompt;
+      // Clear the state so it doesn't re-trigger on reload
+      navigate(location.pathname, { replace: true, state: {} });
+      // Short delay to ensure state is ready before triggering handleSend
+      setTimeout(() => {
+        handleSend(prompt);
+      }, 100);
+    }
+  }, [location.state, navigate, handleSend]);
 
   const handleClear = useCallback(() => {
     setSession(createSession(language));
@@ -303,8 +415,9 @@ export function AssistantPage() {
 
           {session.messages.map((message) => (
             <ChatMessage
-              key={message.id}
-              message={message}
+                key={message.id}
+                language={language}
+                message={message}
               showSources={showSources}
               onCopy={() => handleCopy(message.content)}
               onRegenerate={() => handleRegenerate(message.id)}
@@ -406,15 +519,17 @@ export function AssistantPage() {
 // ============================================================
 
 function ChatMessage({
-  message,
-  showSources,
+    message,
+    language,
+    showSources,
   onCopy,
   onRegenerate,
   onFeedback,
   compact,
 }: {
   message: AssistantMessage;
-  showSources: boolean;
+    language: string;
+    showSources: boolean;
   onCopy: () => void;
   onRegenerate: () => void;
   onFeedback: (helpful: boolean) => void;
@@ -453,8 +568,26 @@ function ChatMessage({
             
 
             {/* Answer text */}
-            <div className="rounded-2xl rounded-tl-sm bg-card border border-border px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap notranslate">
-              {message.content}
+            <div className="rounded-2xl rounded-tl-sm bg-card border border-border px-4 py-3 text-sm leading-relaxed notranslate markdown-body">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2" {...props} />,
+                  h3: ({node, ...props}) => <h3 className="text-md font-bold mt-3 mb-1" {...props} />,
+                  p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-2 space-y-1" {...props} />,
+                  ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-2 space-y-1" {...props} />,
+                  li: ({node, ...props}) => <li className="" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
+                  table: ({node, ...props}) => <div className="overflow-x-auto mb-4"><table className="w-full text-left border-collapse" {...props} /></div>,
+                  th: ({node, ...props}) => <th className="border-b border-border bg-muted/50 p-2 font-medium" {...props} />,
+                  td: ({node, ...props}) => <td className="border-b border-border p-2" {...props} />,
+                  blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-primary/50 pl-3 italic text-muted-foreground my-2" {...props} />
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
             </div>
 
             {/* Structured sections */}
@@ -513,6 +646,7 @@ function ChatMessage({
             <div className="flex items-center gap-1 flex-wrap">
               <span className="text-[10px] text-muted-foreground mr-2">{formatTimestamp(message.timestamp)}</span>
               <ActionButton onClick={onCopy} label="Copy" icon={Copy} />
+              <ActionButton onClick={() => speakText(message.content, language)} label="Read Aloud" icon={Volume2} />
               <ActionButton
                 onClick={() => onFeedback(true)}
                 label="Helpful"

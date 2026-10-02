@@ -153,78 +153,104 @@ export function CertificationPage() {
             ← Back to catalogue
           </Button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="space-y-6">
-              <Card className="p-5 border-l-4 border-l-primary shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5"><BookOpen className="h-20 w-20" /></div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">1. Applicable Standard</h3>
-                <h2 className="text-2xl font-bold text-primary mb-2 cursor-pointer hover:underline" onClick={() => navigate(`/standards/${selectedProduct.standard?.id}`)}>
-                  {selectedProduct.standard?.isNumber || 'Unverified'}
-                </h2>
-                <p className="text-sm font-medium">{selectedProduct.standard?.title || 'No title available'}</p>
-              </Card>
-
-              <Card className="p-5 border-l-4 border-l-foreground shadow-sm">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Product Category</h3>
-                <h2 className="text-xl font-bold mb-2">{selectedProduct.name}</h2>
-                <p className="text-sm text-muted-foreground">{selectedProduct.category || 'General'}</p>
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-5 border-l-4 border-l-success shadow-sm h-full">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-success" />
-                  2. Certification Scheme
-                </h3>
-                <h2 className="text-xl font-bold mb-3">{selectedProduct.scheme?.name}</h2>
-                <p className="text-sm mb-6">{selectedProduct.scheme?.description}</p>
-                
-                <h4 className="font-semibold text-sm border-b pb-2 mb-3">Requirements</h4>
-                {selectedProduct.scheme?.requirements?.length > 0 ? (
-                  <ul className="space-y-3">
-                    {selectedProduct.scheme.requirements.map((req: any, i: number) => (
-                      <li key={req.id} className="text-sm flex gap-2 items-start">
-                        <span className="bg-success/10 text-success rounded-full w-5 h-5 flex items-center justify-center shrink-0 text-xs mt-0.5">{i+1}</span>
-                        <div>
-                          <strong className="block">{req.title}</strong>
-                          <span className="text-muted-foreground text-xs">{req.description}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-muted-foreground">No specific requirements listed.</p>
-                )}
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-5 border-l-4 border-l-purple-500 shadow-sm h-full">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Microscope className="h-4 w-4 text-purple-500" />
-                  3. Testing & Laboratories
-                </h3>
-                
-                <div className="bg-purple-500/10 rounded-lg p-4 mb-4 border border-purple-500/20">
-                  <p className="text-sm font-medium text-purple-900 dark:text-purple-300">
-                    Testing is required as per {selectedProduct.standard?.isNumber}.
+          
+<div className="space-y-6">
+              <div className="bg-primary/5 rounded-xl p-6 border border-primary/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-1">{selectedProduct.name}</h2>
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-medium">{selectedProduct.category || 'General'}</span>
+                    <span>•</span>
+                    <span className="font-semibold text-foreground">{selectedProduct.scheme?.name || 'Standard Mark Scheme'}</span>
                   </p>
                 </div>
-
-                <h4 className="font-semibold text-sm border-b pb-2 mb-3">Authorized Laboratories</h4>
-                <p className="text-xs text-muted-foreground mb-4">
-                  <Info className="h-3 w-3 inline mr-1" />
-                  Relevant laboratory information is not available in the verified database.
-                </p>
-                <Button variant="outline" className="w-full text-xs" onClick={() => navigate('/laboratories')}>
-                  Search All Laboratories
+                <Button onClick={() => navigate('/assistant', { state: { initialPrompt: `How do I apply for BIS certification for ${selectedProduct.name} under ${selectedProduct.standard?.isNumber}?` } })}>
+                  Ask AI About Process
                 </Button>
-              </Card>
+              </div>
+
+              <h3 className="text-lg font-bold text-foreground border-b pb-2">6-Step Certification Guide</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                {/* Step 1 */}
+                <Card className="p-5 border-t-4 border-t-blue-500 shadow-sm relative hover:shadow-md transition-all">
+                  <div className="absolute -top-3 -left-3 bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">1</div>
+                  <h3 className="text-base font-bold text-foreground mb-2 mt-2">Identify Standard</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Ensure your product correctly maps to the Indian Standard.</p>
+                  <div className="bg-muted p-3 rounded-md">
+                    <p className="text-xs font-semibold text-blue-600 mb-1">Applicable IS Number:</p>
+                    <p className="text-sm font-bold cursor-pointer hover:underline" onClick={() => navigate(`/standards/${selectedProduct.standard?.id}`)}>{selectedProduct.standard?.isNumber || 'Unverified'}</p>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{selectedProduct.standard?.title || 'No title available'}</p>
+                  </div>
+                </Card>
+
+                {/* Step 2 */}
+                <Card className="p-5 border-t-4 border-t-indigo-500 shadow-sm relative hover:shadow-md transition-all">
+                  <div className="absolute -top-3 -left-3 bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">2</div>
+                  <h3 className="text-base font-bold text-foreground mb-2 mt-2">Check Lab Equipment</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Procure or verify required testing equipment for your in-house lab.</p>
+                  <div className="bg-muted p-3 rounded-md">
+                    <p className="text-xs text-muted-foreground">According to the Scheme of Testing & Inspection (STI) for <span className="font-semibold text-foreground">{selectedProduct.standard?.isNumber}</span>, essential testing equipment must be calibrated.</p>
+                  </div>
+                </Card>
+
+                {/* Step 3 */}
+                <Card className="p-5 border-t-4 border-t-purple-500 shadow-sm relative hover:shadow-md transition-all">
+                  <div className="absolute -top-3 -left-3 bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">3</div>
+                  <h3 className="text-base font-bold text-foreground mb-2 mt-2">Prepare Factory Docs</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Draft layout, manufacturing process flow, and quality control manual.</p>
+                  {selectedProduct.scheme?.requirements?.length > 0 ? (
+                    <ul className="space-y-2 mt-2">
+                      {selectedProduct.scheme.requirements.slice(0, 2).map((req: any, i: number) => (
+                        <li key={req.id} className="text-xs flex gap-2 items-start text-muted-foreground">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          <span>{req.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-muted-foreground bg-muted p-2 rounded">Gather incorporation certificates, MOA, and trademark registration.</p>
+                  )}
+                </Card>
+
+                {/* Step 4 */}
+                <Card className="p-5 border-t-4 border-t-pink-500 shadow-sm relative hover:shadow-md transition-all">
+                  <div className="absolute -top-3 -left-3 bg-pink-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">4</div>
+                  <h3 className="text-base font-bold text-foreground mb-2 mt-2">Apply on ManakOnline</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Submit form, upload documents, and pay the requisite fee.</p>
+                  <div className="bg-pink-500/10 p-3 rounded-md border border-pink-500/20">
+                    <p className="text-xs font-semibold text-pink-700">Scheme Applied:</p>
+                    <p className="text-sm font-bold text-pink-900 dark:text-pink-300">{selectedProduct.scheme?.name || 'Standard Mark Scheme'}</p>
+                    <p className="text-xs mt-1 text-pink-800/80">Application Fee: ₹1,000</p>
+                  </div>
+                </Card>
+
+                {/* Step 5 */}
+                <Card className="p-5 border-t-4 border-t-orange-500 shadow-sm relative hover:shadow-md transition-all">
+                  <div className="absolute -top-3 -left-3 bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">5</div>
+                  <h3 className="text-base font-bold text-foreground mb-2 mt-2">Lab Testing & Inspection</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Send product sample to BIS recognized lab or await factory inspection.</p>
+                  <Button variant="outline" size="sm" className="w-full text-xs bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 hover:text-orange-800" onClick={() => navigate('/laboratories')}>
+                    Search BIS Recognized Labs
+                  </Button>
+                </Card>
+
+                {/* Step 6 */}
+                <Card className="p-5 border-t-4 border-t-green-500 shadow-sm relative hover:shadow-md transition-all">
+                  <div className="absolute -top-3 -left-3 bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">6</div>
+                  <h3 className="text-base font-bold text-foreground mb-2 mt-2">Grant of License</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Receive your BIS License and start marking your product with the ISI/Registration mark.</p>
+                  <div className="flex justify-center items-center h-12 bg-green-500/10 rounded-md border border-green-500/20">
+                    <ShieldCheck className="h-6 w-6 text-green-600 mr-2" />
+                    <span className="text-sm font-bold text-green-700">BIS Certified</span>
+                  </div>
+                </Card>
+
+              </div>
             </div>
-          </div>
-          
-          <div className="mt-8">
+
+            <div className="mt-8">
             <Card className="p-5 border-l-4 border-l-gray-500 shadow-sm">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Official Sources</h3>
               <p className="text-sm"><strong>Source Document:</strong> BIS Official Standard Registry</p>
